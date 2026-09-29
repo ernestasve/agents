@@ -10,6 +10,7 @@ Ships one skill, `hotel-booking`, which activates when the user wants to find, c
 
 - `.claude-plugin/plugin.json` — Claude Code / Claude Desktop plugin manifest
 - `.mcp.json` — wires the Trip1 remote MCP server so the plugin is self-contained
+- `plugin.json` and `mcp.json` — the same plugin in the [Agent Plugins](https://open-plugins.com) format, for Cursor and other compatible clients
 - `skills/hotel-booking/SKILL.md` — the skill that orchestrates the full booking flow
 
 ## Install
