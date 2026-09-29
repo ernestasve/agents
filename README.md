@@ -1,17 +1,26 @@
-# Trip1 Agent Skills
+<p align="center"><img src="logo.png" width="96" alt="trip1 logo"></p>
+
+# trip1 agent skills and MCP server
 
 [![smithery badge](https://smithery.ai/badge/trip1/trip1)](https://smithery.ai/servers/trip1/trip1)
 
-A plugin that lets agents book hotels on [Trip1](https://trip1.com) through the Trip1 MCP server, paid in USDC on Base over [x402](https://x402.org).
+A plugin that lets agents book hotels on [trip1](https://trip1.com) through the trip1 MCP server: about 3 million properties in 200+ countries, paid in USDC on Base over [x402](https://x402.org).
+
+- **Endpoint:** `https://trip1.com/api/mcp` (Streamable HTTP)
+- **Auth:** none, no account, API key or OAuth
+- **Docs:** https://trip1.com/agents
+- **MCP Registry:** `com.trip1/mcp`
 
 Ships one skill, `hotel-booking`, which activates when the user wants to find, compare, or book a hotel.
 
 ## What's in the box
 
 - `.claude-plugin/plugin.json` — Claude Code / Claude Desktop plugin manifest
-- `.mcp.json` — wires the Trip1 remote MCP server so the plugin is self-contained
+- `.mcp.json` — wires the trip1 remote MCP server so the plugin is self-contained
 - `plugin.json` and `mcp.json` — the same plugin in the [Agent Plugins](https://open-plugins.com) format, for Cursor and other compatible clients
 - `skills/hotel-booking/SKILL.md` — the skill that orchestrates the full booking flow
+- `server.json` — the [official MCP Registry](https://registry.modelcontextprotocol.io) entry
+- `llms-install.md` — install instructions for agents such as Cline that set servers up themselves
 
 ## Install
 
@@ -43,7 +52,30 @@ Two options.
 }
 ```
 
-### Cursor, Codex CLI, Gemini CLI, any SKILL.md-compatible agent
+### Cursor, Windsurf, Cline
+
+Add the server to the client's MCP config (`~/.cursor/mcp.json` for Cursor; *MCP Servers → Configure → Remote Servers* in Cline):
+
+```json
+{
+  "mcpServers": {
+    "trip1": {
+      "type": "streamable-http",
+      "url": "https://trip1.com/api/mcp"
+    }
+  }
+}
+```
+
+Cursor also loads this repo as a plugin through `plugin.json` and `mcp.json`. Clients that only speak stdio can bridge with `npx -y mcp-remote https://trip1.com/api/mcp`.
+
+### VS Code
+
+```bash
+code --add-mcp '{"name":"trip1","type":"http","url":"https://trip1.com/api/mcp"}'
+```
+
+### Codex CLI, Gemini CLI, any SKILL.md-compatible agent
 
 ```bash
 npx skills add trivial-corp/agents
@@ -53,7 +85,7 @@ This installs the skill. Add the MCP server separately via your client's MCP con
 
 ### ChatGPT
 
-ChatGPT supports remote MCP connectors. In *Settings → Connectors → Add*, point it at:
+Search for **trip1** in the ChatGPT apps directory. Or add it as a custom connector in *Settings → Connectors → Add*, pointing at:
 
 ```
 https://trip1.com/api/mcp
@@ -63,7 +95,7 @@ The skill doesn't apply here; ChatGPT doesn't load `SKILL.md` files. The tool de
 
 ### Cowork and other MCP-aware clients
 
-Any client that speaks remote MCP (Streamable HTTP) can add Trip1 as a connector. Paste the same `mcpServers` block above, or the bare URL `https://trip1.com/api/mcp` if the client accepts URLs directly.
+Any client that speaks remote MCP (Streamable HTTP) can add trip1 as a connector. Paste the same `mcpServers` block above, or the bare URL `https://trip1.com/api/mcp` if the client accepts URLs directly.
 
 ### Local development
 
@@ -78,19 +110,23 @@ claude --plugin-dir .
 The skill is instructions, not code. It tells the agent:
 
 - when a hotel-booking intent is present and the skill should activate
-- which Trip1 MCP tools to call, in what order, with which arguments
+- which trip1 MCP tools to call, in what order, with which arguments
 - how to handle the x402 payment handshake and the CoinGate fallback
 - how to report results and recover from rate drops, payment failures, and polling timeouts
 
 ## Paying on the agent's behalf
 
-For fully hands-off agent payments, load an x402-capable wallet MCP alongside Trip1. The simplest option:
+For fully hands-off agent payments, load an x402-capable wallet MCP alongside trip1. The simplest option:
 
 ```bash
 npx @coinbase/payments-mcp
 ```
 
 Without it, `purchase_hotel` returns a CoinGate URL that a human finishes in a browser. CoinGate takes USDC and 50+ other cryptocurrencies.
+
+## Publishing to the MCP Registry
+
+Bump `version` in `server.json`, then run `mcp-publisher publish` after `mcp-publisher login dns --domain trip1.com`. The DNS key lives with the trip1 team.
 
 ## Releasing
 
@@ -100,7 +136,9 @@ To cut a release from an existing commit instead, push a tag manually: `git tag 
 
 ## Links
 
-- Landing page: https://trip1.com/en/agents
+- Landing page: https://trip1.com/agents
+- Server card: https://trip1.com/.well-known/mcp.json
+- x402 metadata: https://trip1.com/.well-known/x402.json
 - MCP Registry entry: [`com.trip1/mcp`](https://registry.modelcontextprotocol.io/?q=com.trip1)
 - x402 protocol: https://x402.org
 - Agent Skills spec: https://agentskills.io/specification
