@@ -122,7 +122,31 @@ For fully hands-off agent payments, load an x402-capable wallet MCP alongside tr
 npx @coinbase/payments-mcp
 ```
 
-Without it, `purchase_hotel` returns a CoinGate URL that a human finishes in a browser. CoinGate takes USDC and 50+ other cryptocurrencies.
+### Paying from code with the x402 SDK
+
+`@x402/fetch` refuses any payment above **$1** by default, and a hotel booking always costs more, so raise the cap. Pin the recipient too, so the client only ever pays trip1:
+
+```ts
+import { wrapFetchWithPaymentFromConfig } from "@x402/fetch";
+import { ExactEvmScheme } from "@x402/evm";
+import { privateKeyToAccount } from "viem/accounts";
+
+const TRIP1_PAY_TO = "0x4eD818663D9040461Ee1f6E8f618Df1770dddDc1"; // see https://trip1.com/.well-known/x402.json
+
+const fetchWithPayment = wrapFetchWithPaymentFromConfig(fetch, {
+  schemes: [{ network: "eip155:8453", client: new ExactEvmScheme(privateKeyToAccount(process.env.EVM_PRIVATE_KEY)) }],
+  spendControls: { maxAmountPerPayment: "$2000" },
+  policies: [(_version, reqs) => reqs.filter((r) => r.payTo.toLowerCase() === TRIP1_PAY_TO.toLowerCase())],
+});
+
+const response = await fetchWithPayment(paymentUrl); // payment_url from purchase_hotel
+```
+
+Then poll `get_order_details` until `ready` is true.
+
+### Without a wallet
+
+Call `purchase_hotel` with `payment_service: "coingate"`. It returns a CoinGate checkout URL that a human finishes in a browser, paying in USDC or 120+ other cryptocurrencies.
 
 ## Publishing to the MCP Registry
 
