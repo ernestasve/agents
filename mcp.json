@@ -1,0 +1,9 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "trip1": {
+      "type": "streamable-http",
+      "url": "https://trip1.com/api/mcp"
+    }
+  }
+}
